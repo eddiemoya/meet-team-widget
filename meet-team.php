@@ -192,12 +192,17 @@ class Meet_Team_Widget extends WP_Widget {
 							'ignore_sticky_posts' => 1
 					)
 			);
-
-            // Two forms of dates - one for user display, the other for "pubdate" attribute in the front-end time tag
-            // most_recent post date: 
-            // pubdate: 2011-09-28
-			$user->most_recent_post_date = date("M d, Y", strtotime($most_recent_post_query->post->post_date));
-			$user->pubdate = date("Y-m-d", strtotime($most_recent_post_query->post->post_date));        
+			if ( $most_recent_post_query->post_count == 0) {
+			    $user->most_recent_post_date = false;
+    			$user->pubdate = false;
+			}
+			else {
+                // Two forms of dates - one for user display, the other for "pubdate" attribute in the front-end time tag
+                // most_recent post date: 
+                // pubdate: 2011-09-28
+    			$user->most_recent_post_date = date("M d, Y", strtotime($most_recent_post_query->post->post_date));
+    			$user->pubdate = date("Y-m-d", strtotime($most_recent_post_query->post->post_date));
+			}      
 
             $user->categories = get_terms('category', array('include' => $user->meta['um-taxonomy-category']));
         } 

@@ -13,7 +13,7 @@
         <?php endif; ?>
     </article>
     <div class="stats">
-        <? if ( $user->most_recent_post_date ): ?>
+        <?php if ( $user->most_recent_post_date ): ?>
         <p>Last posted on <time datetime="<?php echo $user->pubdate; ?>" pubdate="pubdate"><?php echo $user->most_recent_post_date; ?></time>.</p>
         <?php endif; ?>
         <?php if ($show_response_stats === 'on') : ?>

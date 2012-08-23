@@ -7,7 +7,7 @@
             <h5>Specializes in</h5>
             <ul>
                 <?php foreach ($user->categories as $category) : ?>
-                    <li><a href="#"><?php echo $category->name; ?></a></li>
+                    <li><a href="<?php echo get_category_link( $category->term_id ); ?>"><?php echo $category->name; ?></a></li>
                 <?php endforeach; ?>
             </ul>
         <?php endif; ?>
@@ -18,9 +18,9 @@
         <?php endif; ?>
         <?php if ($show_response_stats === 'on') : ?>
             <ul>
-                <li><?php //echo $user->total_answers; ?>8 answers</li>
-                <li><?php echo $user->total_posts; ?> blog post(s)</li>
-                <li><?php echo $user->total_comments; ?> comment(s)</li>
+                <?php // echo '<li>' . $user->total_answers . ' ' . _n( 'answer', 'answers', $user->total_answers ) . '</li>'; ?>
+                <li><?php echo $user->total_posts . ' ' . _n( 'post', 'posts', $user->total_posts ); ?></li>
+                <li><?php echo $user->total_comments . ' ' . _n( 'comment', 'comments', $user->total_comments ); ?></li>
             </ul>
         <?php endif; ?>
     </div>

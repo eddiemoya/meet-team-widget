@@ -88,12 +88,11 @@ class Meet_Team_Widget extends WP_Widget {
 	 */
 	public static function are_plugins_available()
 	{
-		if (
-				//is_plugin_active('communities-user-taxonomies/communities-user-taxonomies.php')
-				//&& is_plugin_active('media-categories-2/media-categories.php')
-				//&& is_plugin_active('user_meta_taxonomy/user_meta_taxonomy.php')
-				//&& is_plugin_active('user-taxonomies/user-taxonomies.php')
-				 is_plugin_active('user-titles/user-titles.php')) {
+		if (is_plugin_active('communities-user-taxonomies/communities-user-taxonomies.php')
+				&& is_plugin_active('media-categories-2/media-categories.php')
+				&& is_plugin_active('user_meta_taxonomy/user_meta_taxonomy.php')
+				&& is_plugin_active('user-taxonomies/user-taxonomies.php')
+				&& is_plugin_active('user-titles/user-titles.php')) {
 
 			$are_plugins_active = true;
 		} else {
@@ -192,17 +191,12 @@ class Meet_Team_Widget extends WP_Widget {
 							'ignore_sticky_posts' => 1
 					)
 			);
-			if ( $most_recent_post_query->post_count == 0) {
-			    $user->most_recent_post_date = false;
-    			$user->pubdate = false;
-			}
-			else {
-                // Two forms of dates - one for user display, the other for "pubdate" attribute in the front-end time tag
-                // most_recent post date: 
-                // pubdate: 2011-09-28
-    			$user->most_recent_post_date = date("M d, Y", strtotime($most_recent_post_query->post->post_date));
-    			$user->pubdate = date("Y-m-d", strtotime($most_recent_post_query->post->post_date));
-			}      
+
+            // Two forms of dates - one for user display, the other for "pubdate" attribute in the front-end time tag
+            // most_recent post date: 
+            // pubdate: 2011-09-28
+			$user->most_recent_post_date = date("M d, Y", strtotime($most_recent_post_query->post->post_date));
+			$user->pubdate = date("Y-m-d", strtotime($most_recent_post_query->post->post_date));        
 
             $user->categories = get_terms('category', array('include' => $user->meta['um-taxonomy-category']));
         } 
@@ -363,18 +357,16 @@ class Meet_Team_Widget extends WP_Widget {
 
             // Create the exact number of drop-down menus specified in number_of_experts
 			for ($i = 1; $i <= $instance['number_of_experts']; $i += 1) {
-				if(function_exists('get_users_by_taxonomy')){
-					if ($instance['category-' . $i] == 'all') {
-						$user_list = get_users_by_taxonomy('category', $category_term_ids);
-					} else {
-						$user_list = get_users_by_taxonomy('category', array($instance['category-' . $i]));
-					}
-
-					$categories = array('all' => 'All Categories') + $categories;
-					$this->form_field('category-' . $i, 'select', 'Expert #' . $i, $instance, $categories);
-					$this->user_list_form_field($user_list, $instance, $i); // custom form field generating function
+				if ($instance['category-' . $i] == 'all') {
+					$user_list = get_users_by_taxonomy('category', $category_term_ids);
+				} else {
+					$user_list = get_users_by_taxonomy('category', array($instance['category-' . $i]));
 				}
-		}
+
+				$categories = array('all' => 'All Categories') + $categories;
+				$this->form_field('category-' . $i, 'select', 'Expert #' . $i, $instance, $categories);
+				$this->user_list_form_field($user_list, $instance, $i); // custom form field generating function
+			}
 		}
 	}
 

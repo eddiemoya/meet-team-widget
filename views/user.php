@@ -1,6 +1,6 @@
 <div class="member clearfix">
-    <?php get_partial( 'parts/crest', array( "user_id" => $user->ID, "width" => '', "titling" => true, "show_name" => false ) ); ?>
-    <article class="info">
+    <?php get_partial( 'parts/crest', array( "user_id" => $user->ID, "width" => 'span4', "titling" => true, "show_name" => false ) ); ?>
+    <article class="info span8">
         <h4><?php get_screenname_link( $user->ID ); ?></h4>
         <address><?php echo $user->user_city;?>, <?php echo $user->user_state; ?></address>
         <?php if ($show_specializations === 'on') : ?>

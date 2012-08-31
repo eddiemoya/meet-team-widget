@@ -1,7 +1,7 @@
 <div class="member clearfix">
     <?php get_partial( 'parts/crest', array( "user_id" => $user->ID, "width" => '', "titling" => true, "show_name" => false ) ); ?>
     <article class="info">
-        <h4><a href="<?php echo get_author_posts_url( $user->ID ); ?>"><?php echo $user->user_nicename; ?></a></h4>
+        <h4><?php get_screenname_link( $user->ID ); ?></h4>
         <address><?php echo $user->user_city;?>, <?php echo $user->user_state; ?></address>
         <?php if ($show_specializations === 'on') : ?>
             <h5>Specializes in</h5>

@@ -5,11 +5,13 @@
         <address><?php echo $user->user_city;?>, <?php echo $user->user_state; ?></address>
         <?php if ($show_specializations === 'on') : ?>
             <h5>Specializes in</h5>
-            <ul>
-                <?php foreach ($user->categories as $category) : ?>
-                    <li><a href="<?php echo get_category_link( $category->term_id ); ?>"><?php echo $category->name; ?></a></li>
-                <?php endforeach; ?>
-            </ul>
+            <?php if ( !empty( $user->categories ) ) : ?>
+                <ul>
+                    <?php foreach ($user->categories as $category) : ?>
+                        <li><a href="<?php echo get_category_link( $category->term_id ); ?>"><?php echo $category->name; ?></a></li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
         <?php endif; ?>
     </article>
     <div class="stats">

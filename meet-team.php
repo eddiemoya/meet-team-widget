@@ -168,41 +168,37 @@ class Meet_Team_Widget extends WP_Widget {
 		}
 
 
-		// Print out the users that were retrieved based from one of the three conditions accounted for by the above 
-		// if/elseif/elseif statement - after retrieving values required for front-end
-		foreach ($users as $user) {
+        // Print out the users that were retrieved based from one of the three conditions accounted for by the above 
+        // if/elseif/elseif statement - after retrieving values required for front-end
+        foreach ($users as $user) {
             $user_meta = get_user_meta($user->ID);
-            $user_badge = get_user_badges($user->ID);
-            $user_badge = $user_badge[0]; // For now, we can only have one badge
+            # $user_badge = get_user_badges($user->ID);
+            # $user_badge = $user_badge[0]; // For now, we can only have one badge
+            # $user->badge_name = $user_badge->name;
+            # $user->badge_image_url = $user_badge->image;
 
             $user->meta = $user_meta; // We still need this meta info for flexibility
-            $user->user_city = $user_meta['user_city'][0] ? $user_meta['user_city'][0] : 'Hoffman Estates';
-            $user->user_state = $user_meta['user_state'][0] ? $user_meta['user_state'][0] : 'IL';
-            $user->total_posts = count_user_posts($user->ID);
-            $user->total_comments = count(get_comments(array('user_id' => $user->ID)));
-            $user->badge_name = $user_badge->name;
-            $user->badge_image_url = $user_badge->image;
-
+            $user->address = return_address( $user->ID );
+            
+            // Get the stats
+            $user->answer_count  = get_comments( array( 'user_id' => $user->ID, 'status' => 'approved', 'count' => true, 'type' => 'answer' ) );
+            $user->comment_count = get_comments( array( 'user_id' => $user->ID, 'status' => 'approved', 'count' => true, 'type' => 'comment' ) );
+            $user->post_count    = return_post_count( $user->ID );
+            
             // Query database for most recent post date
-			$most_recent_post_query = new WP_Query(
-					array(
-							'author' => $user->ID,
-							'showposts' => 1,
-							'caller_get_posts' => 1,
-							'ignore_sticky_posts' => 1
-					)
-			);
-			if ( $most_recent_post_query->post_count == 0) {
-			    $user->most_recent_post_date = false;
-    			$user->pubdate = false;
-			}
-			else {
+            $last_post_date = return_last_post_date( $user->ID );
+
+            if ( $last_post_date == 0) {
+                $user->most_recent_post_date = false;
+                $user->pubdate = false;
+            }
+            else {
                 // Two forms of dates - one for user display, the other for "pubdate" attribute in the front-end time tag
-                // most_recent post date: 
-                // pubdate: 2011-09-28
-    			$user->most_recent_post_date = date("M d, Y", strtotime($most_recent_post_query->post->post_date));
-    			$user->pubdate = date("Y-m-d", strtotime($most_recent_post_query->post->post_date));
-			}      
+                // most_recent post date: Sep 29, 2011
+                // pubdate: 2011-09-29
+                $user->most_recent_post_date = date( "M d, Y", $last_post_date );
+                $user->pubdate = date( "Y-m-d", $last_post_date );
+            }      
 
             $user->categories = get_terms('category', array('include' => $user->meta['um-taxonomy-category']));
         } 

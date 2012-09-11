@@ -7,5 +7,6 @@
         <?php foreach($users as $user){
             include "user.php";
         } ?>
+       <span class="left"><a href="<?php echo get_permalink(get_page_by_title('Experts List'));?>">See More</a></span> 
     </section>
 </section>

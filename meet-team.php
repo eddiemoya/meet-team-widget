@@ -465,10 +465,10 @@ class Meet_Team_Widget extends WP_Widget {
 
         $roles = implode("|", $args['roles']);
 
-        $query['SELECT'] = "SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value AS role, GROUP_CONCAT(DISTINCT m.meta_value) AS terms FROM {$wpdb->users} AS u";
+        $query['SELECT'] = "SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value AS role FROM {$wpdb->users} AS u";
 
         $query['JOIN'] = array(
-            "JOIN {$wpdb->usermeta} AS m  ON u.ID = m.user_id AND m.meta_key = 'um-taxonomy-category'",
+            //"JOIN {$wpdb->usermeta} AS m  ON u.ID = m.user_id AND m.meta_key = 'um-taxonomy-category'",
             "JOIN {$wpdb->usermeta} AS m2 ON u.ID = m2.user_id AND m2.meta_key = '{$wpdb->prefix}capabilities' AND m2.meta_value REGEXP '{$roles}'"
         );
 
@@ -479,11 +479,6 @@ class Meet_Team_Widget extends WP_Widget {
 
         if($args['hide_untaxed'] == false){
             $query['JOIN'][0] = 'LEFT '. $query['JOIN'][0];
-        }
-
-        if(!empty($args['terms']) && $args['terms'][0] != 0){
-            $terms = implode(', ', $args['terms']);
-            $query['JOIN'][0] .= " AND m.meta_value IN ($terms)";
         }
 
         $query['JOIN'] = implode(' ', $query['JOIN']);

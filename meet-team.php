@@ -277,6 +277,8 @@ class Meet_Team_Widget extends WP_Widget {
 	 */
 	public function form($instance) {
 
+		global $wpdb;
+		
 		/* Setup default values for form fields - associtive array, keys are the field_id's */
 		$defaults = array(
 				'title' => 'Meet the Community Team',
@@ -357,11 +359,19 @@ class Meet_Team_Widget extends WP_Widget {
 				$category_term_ids[] = $category_terms[$i]->term_id;
 			}
 
+			//Get all users for each tax term
+			$q = $this->get_user_role_tax_intersection(array('roles' => array('expert')));
+			$all_users = $wpdb->get_results($q);//get_users_by_taxonomy('category', $category_term_ids);
+			
+			/*echo '<pre>';
+			var_dump($all_users);
+			exit;*/
+			
             // Create the exact number of drop-down menus specified in number_of_experts
 			for ($i = 1; $i <= $instance['number_of_experts']; $i += 1) {
 				if(function_exists('get_users_by_taxonomy')){
 					if ($instance['category-' . $i] == 'all') {
-						$user_list = get_users_by_taxonomy('category', $category_term_ids);
+						$user_list = $all_users;//get_users_by_taxonomy('category', $category_term_ids);
 					} else {
 						$user_list = get_users_by_taxonomy('category', array($instance['category-' . $i]));
 					}
@@ -430,6 +440,51 @@ class Meet_Team_Widget extends WP_Widget {
 			$this->form_field($field_id, $type, $label, $instance, $options);
 		}
 	}
+	
+	
+	
+	function get_user_role_tax_intersection($args = array()){
+		
+        global $wpdb;
+
+        $default_args = array(
+            'hide_untaxed' => true,
+            'terms'         => array(),
+            'roles'         => array(),
+        );
+
+        $args = array_merge($default_args, $args);
+
+        $roles = implode("|", $args['roles']);
+
+        $query['SELECT'] = "SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value AS role, GROUP_CONCAT(DISTINCT m.meta_value) AS terms FROM {$wpdb->users} AS u";
+
+        $query['JOIN'] = array(
+            "JOIN {$wpdb->usermeta} AS m  ON u.ID = m.user_id AND m.meta_key = 'um-taxonomy-category'",
+            "JOIN {$wpdb->usermeta} AS m2 ON u.ID = m2.user_id AND m2.meta_key = '{$wpdb->prefix}capabilities' AND m2.meta_value REGEXP '{$roles}'"
+        );
+
+        $query['GROUP'] = 'GROUP BY u.ID';
+        $query['ORDER'] = 'ORDER BY u.user_nicename';
+
+        $query['ORDER'] = (isset($args['order']))? $args['order'] : 'DESC';
+
+        if($args['hide_untaxed'] == false){
+            $query['JOIN'][0] = 'LEFT '. $query['JOIN'][0];
+        }
+
+        if(!empty($args['terms']) && $args['terms'][0] != 0){
+            $terms = implode(', ', $args['terms']);
+            $query['JOIN'][0] .= " AND m.meta_value IN ($terms)";
+        }
+
+        $query['JOIN'] = implode(' ', $query['JOIN']);
+
+        //print_r($query);
+        return  implode(' ', $query);
+
+    }
+    
 
 	/**
 	 * Helper function - does not need to be part of widgets, this is custom, but

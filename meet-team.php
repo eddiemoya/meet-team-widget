@@ -333,6 +333,12 @@ class Meet_Team_Widget extends WP_Widget {
                         'type' => 'checkbox',
                         'label' => "Show user's specializations"
                 ),
+                
+                array(
+                        'field_id' => 'hide_show_all',
+                        'type' => 'checkbox',
+                        'label' => "Hide 'show all' link"
+                ),
 
 				// Choose automatic expert selection
 				array(
@@ -398,6 +404,8 @@ class Meet_Team_Widget extends WP_Widget {
 	 * @return void
 	 */
 	private function user_list_form_field($user_list, $instance, $i) {
+		if(isset($instance['user-'.$i]))
+			return '';
 		?>
 		<p>
 			<select id="<?php echo $this->get_field_id('user-' . $i); ?>"

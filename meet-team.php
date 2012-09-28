@@ -410,6 +410,7 @@ class Meet_Team_Widget extends WP_Widget {
 	 * @param int $i
 	 * @return void
 	 */
+
 	private function user_list_form_field($user_list, $instance, $i) { ?>
 		<p>
 			<select id="<?php echo $this->get_field_id('user-' . $i); ?>"

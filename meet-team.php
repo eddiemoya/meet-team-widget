@@ -186,20 +186,27 @@ class Meet_Team_Widget extends WP_Widget {
             $user->post_count    = return_post_count( $user->ID );
             
             // Query database for most recent post date
-            $last_post_date = return_last_post_date( $user->ID );
+            $args = array(
+			    'user_id' => $user->ID,
+			    'number' => 1,
+			    'status' => 'approve'
+			);
 
-            if ( $last_post_date == 0) {
-                $user->most_recent_post_date = false;
+    		$comments = get_comments( $args );
+    		
+    		$last_comment_date = strtotime($comments[0]->comment_date);
+    		
+    		$last_post_date = return_last_post_date( $user->ID );
+    		
+    		if ($last_post_date == 0 && $last_comment_date == 0) {
+    		    $user->most_recent_post_date = false;
                 $user->pubdate = false;
-            }
-            else {
-                // Two forms of dates - one for user display, the other for "pubdate" attribute in the front-end time tag
-                // most_recent post date: Sep 29, 2011
-                // pubdate: 2011-09-29
-                $user->most_recent_post_date = date( "M d, Y", $last_post_date );
-                $user->pubdate = date( "Y-m-d", $last_post_date );
-            }      
-
+    		} else {
+    		    $last_activity = ($last_comment_date > $last_post_date) ? $last_comment_date : $last_post_date;
+    		    $user->most_recent_post_date = date( "M d, Y", $last_post_date );
+    		    $user->pubdate = $user->most_recent_post_date;
+    		}
+            
             $user->categories = get_terms('category', array('include' => $user->meta['um-taxonomy-category']));
         } 
 
@@ -489,6 +496,7 @@ class Meet_Team_Widget extends WP_Widget {
         $query['JOIN'] = implode(' ', $query['JOIN']);
 
         //print_r($query);
+        echo implode(' ', $query);
         return  implode(' ', $query);
 
     }

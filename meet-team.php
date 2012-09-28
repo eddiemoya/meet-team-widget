@@ -279,6 +279,9 @@ class Meet_Team_Widget extends WP_Widget {
 
 		global $wpdb;
 		
+        $roles = new WP_Roles();
+        $roles = $roles->role_objects;
+		
 		/* Setup default values for form fields - associtive array, keys are the field_id's */
 		$defaults = array(
 				'title' => 'Meet the Community Team',
@@ -366,7 +369,11 @@ class Meet_Team_Widget extends WP_Widget {
 			}
 
 			//Get all users for each tax term
-			$q = $this->get_user_role_tax_intersection(array('roles' => array('expert')));
+			foreach((object)$roles as $role) {
+                if($role->has_cap("team_member"))
+                    $team_members[] = trim($role->name);
+            }
+			$q = $this->get_user_role_tax_intersection(array('roles' => $team_members));
 			$all_users = $wpdb->get_results($q);//get_users_by_taxonomy('category', $category_term_ids);
 			
 			/*echo '<pre>';
@@ -386,7 +393,7 @@ class Meet_Team_Widget extends WP_Widget {
 					$this->form_field('category-' . $i, 'select', 'Expert #' . $i, $instance, $categories);
 					$this->user_list_form_field($user_list, $instance, $i); // custom form field generating function
 				}
-		}
+		    }
 		}
 	}
 
@@ -403,10 +410,7 @@ class Meet_Team_Widget extends WP_Widget {
 	 * @param int $i
 	 * @return void
 	 */
-	private function user_list_form_field($user_list, $instance, $i) {
-		if(isset($instance['user-'.$i]))
-			return '';
-		?>
+	private function user_list_form_field($user_list, $instance, $i) { ?>
 		<p>
 			<select id="<?php echo $this->get_field_id('user-' . $i); ?>"
 				name="<?php echo $this->get_field_name('user-' . $i); ?>"
@@ -463,7 +467,7 @@ class Meet_Team_Widget extends WP_Widget {
 
         $args = array_merge($default_args, $args);
 
-        $roles = implode("|", $args['roles']);
+        $roles = implode("|", (array)$args['roles']);
 
         $query['SELECT'] = "SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value AS role FROM {$wpdb->users} AS u";
 

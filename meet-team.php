@@ -496,7 +496,6 @@ class Meet_Team_Widget extends WP_Widget {
         $query['JOIN'] = implode(' ', $query['JOIN']);
 
         //print_r($query);
-        echo implode(' ', $query);
         return  implode(' ', $query);
 
     }

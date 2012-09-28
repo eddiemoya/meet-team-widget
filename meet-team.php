@@ -194,7 +194,7 @@ class Meet_Team_Widget extends WP_Widget {
 
     		$comments = get_comments( $args );
     		
-    		$last_comment_date = strtotime($comments[0]->comment_date);
+    		$last_comment_date = isset( $comments[0]->comment_date ) ? strtotime( $comments[0]->comment_date ) : 0;
     		
     		$last_post_date = return_last_post_date( $user->ID );
     		

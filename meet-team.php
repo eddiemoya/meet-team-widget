@@ -203,7 +203,7 @@ class Meet_Team_Widget extends WP_Widget {
                 $user->pubdate = false;
     		} else {
     		    $last_activity = ($last_comment_date > $last_post_date) ? $last_comment_date : $last_post_date;
-    		    $user->most_recent_post_date = date( "M d, Y", $last_post_date );
+    		    $user->most_recent_post_date = date( "M d, Y", $last_activity );
     		    $user->pubdate = $user->most_recent_post_date;
     		}
             

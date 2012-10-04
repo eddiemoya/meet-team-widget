@@ -243,24 +243,13 @@ class Meet_Team_Widget extends WP_Widget {
             if ( $last_post_date == 0) {
                 $user->most_recent_post_date = false;
                 $user->pubdate = false;
-<<<<<<< HEAD
-            }
-            else {
-                // Two forms of dates - one for user display, the other for "pubdate" attribute in the front-end time tag
-                // most_recent post date: Sep 29, 2011
-                // pubdate: 2011-09-29
-                $user->most_recent_post_date = date( "M d, Y", $last_post_date );
-                $user->pubdate = date( "Y-m-d", $last_post_date );
-            }      
 
-=======
     		} else {
     		    $last_activity = ($last_comment_date > $last_post_date) ? $last_comment_date : $last_post_date;
     		    $user->most_recent_post_date = date( "M d, Y", $last_activity );
     		    $user->pubdate = $user->most_recent_post_date;
     		}
             
->>>>>>> f3b6d57b0cb8ca496279649fbd1e7187c721843e
             $user->categories = get_terms('category', array('include' => $user->meta['um-taxonomy-category']));
         } 
 

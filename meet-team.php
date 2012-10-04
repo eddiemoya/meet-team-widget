@@ -52,6 +52,10 @@ class Meet_Team_Widget extends WP_Widget {
 		);
 		
 		add_action('admin_print_scripts-widgets.php', array($this, 'enqueue'));
+		add_action('admin_print_scripts-post.php', array($this, 'enqueue'));
+		add_action('wp_ajax_meet_team_user_query_flush_cache', array($this, 'meet_team_user_query_flush_cache'));
+		add_action('set_user_role', array($this, 'meet_team_user_updated'), 10, 2);
+		add_action('members_pre_edit_role_form', array($this, 'roles_edited'));
 
 		parent::WP_Widget($this->id_base, $this->widget_name, $widget_ops);
 	}
@@ -76,6 +80,54 @@ class Meet_Team_Widget extends WP_Widget {
 		if (Meet_Team_Widget::are_plugins_available()) {
 			add_action('widgets_init', create_function( '', 'register_widget("' . __CLASS__ . '");' ));
 		}
+	}
+
+	public function roles_edited(){
+		if( isset($_POST['new-cap']) ||  isset($_POST['role-caps']) || isset($_POST['submit']) ) {
+			set_transient('meet_team_widget_user_query_uptodate', 0, 0);
+		}
+
+	}
+
+	public function meet_team_user_updated($user_id, $role){
+		$role = get_role($role);
+		//$old_role = get_role($old_role);
+
+		if($role->name == 'expert' )	{
+			set_transient('meet_team_widget_user_query_uptodate', 0, 0);
+		}
+	}
+	/**
+	 * @author Eddie Moya
+	 */
+	public function meet_team_user_query_flush_cache(){
+
+		set_transient('meet_team_widget_user_query_in_progress', 1, 0);
+		
+		ignore_user_abort(true);
+		//set_time_limit(0);
+		global $wpdb;
+
+		//delete_transient('meet_team_user_query')
+		wp_cache_delete( 'user_query', 'meet_team_widget'  );
+		set_transient('meet_team_widget_user_query_uptodate', 0, 0);
+
+		$q = $this->get_user_role_tax_intersection(array('roles' => array('expert')));
+		$all_users = $wpdb->get_results($q);
+
+		if ( !empty($all_users) ){
+			wp_cache_set( 'user_query', $all_users, 'meet_team_widget', 0);
+			set_transient('meet_team_widget_user_query_uptodate', true, 0);
+		}
+
+		// if ( !empty($all_users) ){
+		// 	set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7);
+		// 	set_transient('meet_team_widget_user_query_uptodate', 1, 0);
+		// }
+
+		set_transient('meet_team_widget_user_query_in_progress', 0, 0);
+		ignore_user_abort(false);
+		exit('Cache Updated');
 	}
 
 	/**
@@ -186,27 +238,20 @@ class Meet_Team_Widget extends WP_Widget {
             $user->post_count    = return_post_count( $user->ID );
             
             // Query database for most recent post date
-            $args = array(
-			    'user_id' => $user->ID,
-			    'number' => 1,
-			    'status' => 'approve'
-			);
+            $last_post_date = return_last_post_date( $user->ID );
 
-    		$comments = get_comments( $args );
-    		
-    		$last_comment_date = isset( $comments[0]->comment_date ) ? strtotime( $comments[0]->comment_date ) : 0;
-    		
-    		$last_post_date = return_last_post_date( $user->ID );
-    		
-    		if ($last_post_date == 0 && $last_comment_date == 0) {
-    		    $user->most_recent_post_date = false;
+            if ( $last_post_date == 0) {
+                $user->most_recent_post_date = false;
                 $user->pubdate = false;
-    		} else {
-    		    $last_activity = ($last_comment_date > $last_post_date) ? $last_comment_date : $last_post_date;
-    		    $user->most_recent_post_date = date( "M d, Y", $last_post_date );
-    		    $user->pubdate = $user->most_recent_post_date;
-    		}
-            
+            }
+            else {
+                // Two forms of dates - one for user display, the other for "pubdate" attribute in the front-end time tag
+                // most_recent post date: Sep 29, 2011
+                // pubdate: 2011-09-29
+                $user->most_recent_post_date = date( "M d, Y", $last_post_date );
+                $user->pubdate = date( "Y-m-d", $last_post_date );
+            }      
+
             $user->categories = get_terms('category', array('include' => $user->meta['um-taxonomy-category']));
         } 
 
@@ -285,9 +330,6 @@ class Meet_Team_Widget extends WP_Widget {
 	public function form($instance) {
 
 		global $wpdb;
-		
-        $roles = new WP_Roles();
-        $roles = $roles->role_objects;
 		
 		/* Setup default values for form fields - associtive array, keys are the field_id's */
 		$defaults = array(
@@ -376,31 +418,65 @@ class Meet_Team_Widget extends WP_Widget {
 			}
 
 			//Get all users for each tax term
-			foreach((object)$roles as $role) {
-                if($role->has_cap("team_member"))
-                    $team_members[] = trim($role->name);
-            }
-			$q = $this->get_user_role_tax_intersection(array('roles' => $team_members));
-			$all_users = $wpdb->get_results($q);//get_users_by_taxonomy('category', $category_term_ids);
+			$all_users = wp_cache_get( 'user_query', 'meet_team_widget');
+
+			// NOT using transients, because transients may sometimes be stored in the database.
+			//$all_users = get_transient('meet_team_user_query');
+			$in_progress = get_transient('meet_team_widget_user_query_in_progress');
+			$cache_uptodate = get_transient('meet_team_widget_user_query_uptodate');
+
+			// echo "<pre>";var_dump($in_progress);echo "</pre>";
+			// echo "<pre>";var_dump($cache_uptodate);echo "</pre>";
+			// echo "<pre>";print_r($all_users);echo "</pre>";
+
+			if(!$in_progress){
+				if( false === $all_users || !$cache_uptodate ){
+					//Show Cache Buster button
+					echo '
+					<p class="update-nag">User Cache out of date! <br />	                    
+						<img src="images/wpspin_light.gif" class="ajax-feedback" title="" alt="" style="display: none; margin-right:auto;margin-left:auto;">
+						<a href="" class="meet-team-widget-flush-user-cache">Click Here to update.</a> 
+						<small style="display:block;">(May take several minutes)</small> 
+					</p>';
+				}
+			} else {
+					echo '
+					<p class="update-nag">User Cache update In Progress! <br />	                    
+						<small style="display:block;">(May take several minutes)</small> 
+					</p>';
+			}
+			
+			// NOT using transients, because transients may sometimes be stored in the database.
+			// $all_users = get_transient('meet_team_user_query');
+
+			// if(false === $all_users){
+			// 	$all_users = $wpdb->get_results($q);
+			// 	set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7);
+			// }
+
+			// $q = $this->get_user_role_tax_intersection(array('roles' => array('expert')));
+			// $all_users = $wpdb->get_results($q);//get_users_by_taxonomy('category', $category_term_ids);
 			
 			/*echo '<pre>';
 			var_dump($all_users);
 			exit;*/
 			
             // Create the exact number of drop-down menus specified in number_of_experts
-			for ($i = 1; $i <= $instance['number_of_experts']; $i += 1) {
-				if(function_exists('get_users_by_taxonomy')){
-					if ($instance['category-' . $i] == 'all') {
-						$user_list = $all_users;//get_users_by_taxonomy('category', $category_term_ids);
-					} else {
-						$user_list = get_users_by_taxonomy('category', array($instance['category-' . $i]));
-					}
+            if(false !== $all_users){
+				for ($i = 1; $i <= $instance['number_of_experts']; $i += 1) {
+					if(function_exists('get_users_by_taxonomy')){
+						if ($instance['category-' . $i] == 'all') {
+							$user_list = $all_users;//get_users_by_taxonomy('category', $category_term_ids);
+						} else {
+							$user_list = get_users_by_taxonomy('category', array($instance['category-' . $i]));
+						}
 
-					$categories = array('all' => 'All Categories') + $categories;
-					$this->form_field('category-' . $i, 'select', 'Expert #' . $i, $instance, $categories);
-					$this->user_list_form_field($user_list, $instance, $i); // custom form field generating function
+						$categories = array('all' => 'All Categories') + $categories;
+						$this->form_field('category-' . $i, 'select', 'Expert #' . $i, $instance, $categories);
+						$this->user_list_form_field($user_list, $instance, $i); // custom form field generating function
+					}
 				}
-		    }
+			}
 		}
 	}
 
@@ -417,8 +493,10 @@ class Meet_Team_Widget extends WP_Widget {
 	 * @param int $i
 	 * @return void
 	 */
-
-	private function user_list_form_field($user_list, $instance, $i) { ?>
+	private function user_list_form_field($user_list, $instance, $i) {
+		/*if(isset($instance['user-'.$i]))
+			return '';*/
+		?>
 		<p>
 			<select id="<?php echo $this->get_field_id('user-' . $i); ?>"
 				name="<?php echo $this->get_field_name('user-' . $i); ?>"
@@ -475,7 +553,7 @@ class Meet_Team_Widget extends WP_Widget {
 
         $args = array_merge($default_args, $args);
 
-        $roles = implode("|", (array)$args['roles']);
+        $roles = implode("|", $args['roles']);
 
         $query['SELECT'] = "SELECT DISTINCT u.ID, u.user_login, u.user_nicename, u.user_email, u.display_name, m2.meta_value AS role FROM {$wpdb->users} AS u";
 

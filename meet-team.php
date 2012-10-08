@@ -102,30 +102,30 @@ class Meet_Team_Widget extends WP_Widget {
 	 */
 	public function meet_team_user_query_flush_cache(){
 
-		set_transient('meet_team_widget_user_query_in_progress', 1, 60*60*1);
+		set_transient('meet_team_widget_user_query_in_progress', 1, 60*10);
 		
 		ignore_user_abort(true);
 		//set_time_limit(0);
 		global $wpdb;
 
-		delete_transient('meet_team_user_query');
-		//wp_cache_delete( 'user_query', 'meet_team_widget'  );
-		set_transient('meet_team_widget_user_query_uptodate', 0, 0);
+		//delete_transient('meet_team_user_query')
+		wp_cache_delete( 'user_query', 'meet_team_widget'  );
+		set_transient('meet_team_widget_user_query_uptodate', 0, 60*60*24*7);
 
 		$q = $this->get_user_role_tax_intersection(array('roles' => array('expert')));
 		$all_users = $wpdb->get_results($q);
 
-		// if ( !empty($all_users) ){
-		// 	wp_cache_set( 'user_query', $all_users, 'meet_team_widget', 60*60*24*7);
-		// 	set_transient('meet_team_widget_user_query_uptodate', true, 60*60*24*7);
-		// }
-
 		if ( !empty($all_users) ){
-			set_transient('meet_team_user_query', $all_users, 60*60*24 *7);
-			set_transient('meet_team_widget_user_query_uptodate', 1, 0);
+			wp_cache_set( 'user_query', $all_users, 'meet_team_widget', 60*60*24*7);
+			set_transient('meet_team_widget_user_query_uptodate', true, 60*60*24*7);
 		}
 
-		set_transient('meet_team_widget_user_query_in_progress', 0, 0);
+		// if ( !empty($all_users) ){
+		// 	set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7);
+		// 	set_transient('meet_team_widget_user_query_uptodate', 1, 0);
+		// }
+
+		set_transient('meet_team_widget_user_query_in_progress', 0, 60*10);
 		ignore_user_abort(false);
 		exit('Cache Updated');
 	}
@@ -395,14 +395,6 @@ class Meet_Team_Widget extends WP_Widget {
 						'field_id' => 'auto',
 						'type' => 'checkbox',
 						'label' => 'Automatically select users by category'
-				),
-				
-				//More link target
-				array(
-						'field_id' 	=> 'more_link',
-						'type'		=> 'select-slim',
-						'label'		=> 'More link target: ',
-						'options'	=> $this->get_pagelist_options()
 				)
 		);
 
@@ -424,10 +416,10 @@ class Meet_Team_Widget extends WP_Widget {
 			}
 
 			//Get all users for each tax term
-			//$all_users = wp_cache_get( 'user_query', 'meet_team_widget');
+			$all_users = wp_cache_get( 'user_query', 'meet_team_widget');
 
 			// NOT using transients, because transients may sometimes be stored in the database.
-			$all_users = get_transient('meet_team_user_query');
+			//$all_users = get_transient('meet_team_user_query');
 			$in_progress = get_transient('meet_team_widget_user_query_in_progress');
 			$cache_uptodate = get_transient('meet_team_widget_user_query_uptodate');
 
@@ -521,25 +513,6 @@ class Meet_Team_Widget extends WP_Widget {
 		</p>
 		<br />
 		<?php
-	}
-	
-	/**
-	 * Returns associative array of pages for site
-	 * 
-	 * @param void
-	 * @return array - array of pages (pageID => Page Title)
-	 */
-	private function get_pagelist_options() {
-		
-		$pages = get_pages();
-		$opts = array();
-		
-		foreach($pages as $page) {
-			
-			$opts[$page->ID] = $page->post_title;
-		}
-		
-		return $opts;
 	}
 
 	/**
@@ -661,7 +634,6 @@ class Meet_Team_Widget extends WP_Widget {
                     <?php break;
 
 
-                    
                 case 'textarea':
                     $rows = (isset($options['rows'])) ? $options['rows'] : '16';
                     $cols = (isset($options['cols'])) ? $options['cols'] : '20'; ?>

@@ -395,6 +395,14 @@ class Meet_Team_Widget extends WP_Widget {
 						'field_id' => 'auto',
 						'type' => 'checkbox',
 						'label' => 'Automatically select users by category'
+				),
+				
+				//More link target
+				array(
+						'field_id' 	=> 'more_link',
+						'type'		=> 'select-slim',
+						'label'		=> 'More link target: ',
+						'options'	=> $this->get_pagelist_options()
 				)
 		);
 
@@ -513,6 +521,25 @@ class Meet_Team_Widget extends WP_Widget {
 		</p>
 		<br />
 		<?php
+	}
+	
+	/**
+	 * Returns associative array of pages for site
+	 * 
+	 * @param void
+	 * @return array - array of pages (pageID => Page Title)
+	 */
+	private function get_pagelist_options() {
+		
+		$pages = get_pages();
+		$opts = array();
+		
+		foreach($pages as $page) {
+			
+			$opts[$page->ID] = $page->post_title;
+		}
+		
+		return $opts;
 	}
 
 	/**

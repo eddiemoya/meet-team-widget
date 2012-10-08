@@ -94,7 +94,7 @@ class Meet_Team_Widget extends WP_Widget {
 		//$old_role = get_role($old_role);
 
 		if($role->name == 'expert' )	{
-			set_transient('meet_team_widget_user_query_uptodate', 0, 0);
+			set_transient('meet_team_widget_user_query_uptodate', 0, 60*60*24*7);
 		}
 	}
 	/**
@@ -102,28 +102,28 @@ class Meet_Team_Widget extends WP_Widget {
 	 */
 	public function meet_team_user_query_flush_cache(){
 
-		set_transient('meet_team_widget_user_query_in_progress', 1, 0);
+		set_transient('meet_team_widget_user_query_in_progress', 1, 60*60*1);
 		
 		ignore_user_abort(true);
 		//set_time_limit(0);
 		global $wpdb;
 
-		//delete_transient('meet_team_user_query')
-		wp_cache_delete( 'user_query', 'meet_team_widget'  );
+		delete_transient('meet_team_user_query')
+		//wp_cache_delete( 'user_query', 'meet_team_widget'  );
 		set_transient('meet_team_widget_user_query_uptodate', 0, 0);
 
 		$q = $this->get_user_role_tax_intersection(array('roles' => array('expert')));
 		$all_users = $wpdb->get_results($q);
 
-		if ( !empty($all_users) ){
-			wp_cache_set( 'user_query', $all_users, 'meet_team_widget', 0);
-			set_transient('meet_team_widget_user_query_uptodate', true, 0);
-		}
-
 		// if ( !empty($all_users) ){
-		// 	set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7);
-		// 	set_transient('meet_team_widget_user_query_uptodate', 1, 0);
+		// 	wp_cache_set( 'user_query', $all_users, 'meet_team_widget', 60*60*24*7);
+		// 	set_transient('meet_team_widget_user_query_uptodate', true, 60*60*24*7);
 		// }
+
+		if ( !empty($all_users) ){
+			set_transient('meet_team_user_query', $all_users, 60*60*24 *7);
+			set_transient('meet_team_widget_user_query_uptodate', 1, 0);
+		}
 
 		set_transient('meet_team_widget_user_query_in_progress', 0, 0);
 		ignore_user_abort(false);
@@ -416,10 +416,10 @@ class Meet_Team_Widget extends WP_Widget {
 			}
 
 			//Get all users for each tax term
-			$all_users = wp_cache_get( 'user_query', 'meet_team_widget');
+			//$all_users = wp_cache_get( 'user_query', 'meet_team_widget');
 
 			// NOT using transients, because transients may sometimes be stored in the database.
-			//$all_users = get_transient('meet_team_user_query');
+			$all_users = get_transient('meet_team_user_query');
 			$in_progress = get_transient('meet_team_widget_user_query_in_progress');
 			$cache_uptodate = get_transient('meet_team_widget_user_query_uptodate');
 
@@ -428,7 +428,7 @@ class Meet_Team_Widget extends WP_Widget {
 			// echo "<pre>";print_r($all_users);echo "</pre>";
 
 			if(!$in_progress){
-				if( false === $all_users || !$cache_uptodate ){
+				if( false === $all_users){// || !$cache_uptodate ){
 					//Show Cache Buster button
 					echo '
 					<p class="update-nag">User Cache out of date! <br />	                    

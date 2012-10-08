@@ -108,7 +108,7 @@ class Meet_Team_Widget extends WP_Widget {
 		//set_time_limit(0);
 		global $wpdb;
 
-		delete_transient('meet_team_user_query')
+		delete_transient('meet_team_user_query');
 		//wp_cache_delete( 'user_query', 'meet_team_widget'  );
 		set_transient('meet_team_widget_user_query_uptodate', 0, 0);
 

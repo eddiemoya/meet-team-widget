@@ -661,6 +661,7 @@ class Meet_Team_Widget extends WP_Widget {
                     <?php break;
 
 
+                    
                 case 'textarea':
                     $rows = (isset($options['rows'])) ? $options['rows'] : '16';
                     $cols = (isset($options['cols'])) ? $options['cols'] : '20'; ?>

@@ -13,7 +13,9 @@
         </li>
     </ul>
     <?php if (!$hide_show_all) : ?>
-        <span class="see-more clearfix"><a href="<?php echo get_permalink($more_link);?>">See More</a></span> 
+    
+        <span class="see-more clearfix"><a href="<?php echo get_permalink($more_link);?>">See More</a></span>
+         
     <?php endif; ?>
 </section>
 </article>

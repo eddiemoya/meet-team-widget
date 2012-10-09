@@ -101,32 +101,40 @@ class Meet_Team_Widget extends WP_Widget {
 	 * @author Eddie Moya
 	 */
 	public function meet_team_user_query_flush_cache(){
-
-		set_transient('meet_team_widget_user_query_in_progress', 1, 60*10);
-		
-		ignore_user_abort(true);
-		//set_time_limit(0);
 		global $wpdb;
 
-		//delete_transient('meet_team_user_query')
-		wp_cache_delete( 'user_query', 'meet_team_widget'  );
-		set_transient('meet_team_widget_user_query_uptodate', 0, 60*60*24*7);
+		set_transient('meet_team_widget_user_query_in_progress', 1, 60*10);
+		ignore_user_abort(true);
 
-		$q = $this->get_user_role_tax_intersection(array('roles' => array('expert')));
-		$all_users = $wpdb->get_results($q);
+			//delete_transient('meet_team_user_query')
+			wp_cache_delete( 'user_query', 'meet_team_widget'  );
+			set_transient('meet_team_widget_user_query_uptodate', 0, 60*60*24*7);
 
-		if ( !empty($all_users) ){
-			wp_cache_set( 'user_query', $all_users, 'meet_team_widget', 60*60*24*7);
-			set_transient('meet_team_widget_user_query_uptodate', true, 60*60*24*7);
-		}
+			$roles = new WP_Roles();
+			$roles = $roles->role_objects;
 
-		// if ( !empty($all_users) ){
-		// 	set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7);
-		// 	set_transient('meet_team_widget_user_query_uptodate', 1, 0);
-		// }
+			foreach((object)$roles as $role) {
+				if($role->has_cap("team_member")){
+					$team_members[] = trim($role->name);
+				}
+			}
+			
+			$q = $this->get_user_role_tax_intersection(array('roles' => $team_members));
+			$all_users = $wpdb->get_results($q);
 
-		set_transient('meet_team_widget_user_query_in_progress', 0, 60*10);
+			if ( !empty($all_users) ){
+				wp_cache_set( 'user_query', $all_users, 'meet_team_widget', 60*60*24*7);
+				set_transient('meet_team_widget_user_query_uptodate', true, 60*60*24*7);
+			}
+
+			// if ( !empty($all_users) ){
+			// 	set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7);
+			// 	set_transient('meet_team_widget_user_query_uptodate', 1, 0);
+			// }
+
 		ignore_user_abort(false);
+		set_transient('meet_team_widget_user_query_in_progress', 0, 60*10);
+
 		exit('Cache Updated');
 	}
 

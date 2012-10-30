@@ -255,7 +255,7 @@ class Meet_Team_Widget extends WP_Widget {
 
     		} else {
     			
-    		    $user->most_recent_post_date = date( "M d, Y", $last_activity );
+    		    $user->most_recent_post_date = date( "M d, Y", strtotime($last_activity));
     		    $user->pubdate = $user->most_recent_post_date;
     		}
             

@@ -246,14 +246,15 @@ class Meet_Team_Widget extends WP_Widget {
             $user->post_count    = return_post_count( $user->ID );
             
             // Query database for most recent post date
-            $last_post_date = return_last_post_date( $user->ID );
+            $last_activity = get_last_activity_date($user->ID);//return_last_post_date( $user->ID );
 
-            if ( $last_post_date == 0) {
+            if ( ! $last_activity) {
+            	
                 $user->most_recent_post_date = false;
                 $user->pubdate = false;
 
     		} else {
-    		    $last_activity = ($last_comment_date > $last_post_date) ? $last_comment_date : $last_post_date;
+    			
     		    $user->most_recent_post_date = date( "M d, Y", $last_activity );
     		    $user->pubdate = $user->most_recent_post_date;
     		}

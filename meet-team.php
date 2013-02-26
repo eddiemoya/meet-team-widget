@@ -5,7 +5,7 @@
 /*
 Plugin Name: Meet the Community Team
 Description: Creates a widget for viewing communities experts
-Version: 1.0
+Version: 1.1
 Author: Harry Oh, Eddie Moya, Dan Crimmins
 */
 

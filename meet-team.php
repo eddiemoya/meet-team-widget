@@ -55,7 +55,7 @@ class Meet_Team_Widget extends WP_Widget {
 		add_action('admin_print_scripts-post.php', array($this, 'enqueue'));
 		add_action('wp_ajax_meet_team_user_query_flush_cache', array($this, 'meet_team_user_query_flush_cache'));
 		add_action('set_user_role', array($this, 'meet_team_user_updated'), 10, 2);
-		add_action('members_pre_edit_role_form', array($this, 'roles_edited'));
+	//	add_action('members_pre_edit_role_form', array($this, 'roles_edited'));
 
 		parent::WP_Widget($this->id_base, $this->widget_name, $widget_ops);
 	}
@@ -103,12 +103,19 @@ class Meet_Team_Widget extends WP_Widget {
 	public function meet_team_user_query_flush_cache(){
 		global $wpdb;
 
-		set_transient('meet_team_widget_user_query_in_progress', 1, 60*10);
-		ignore_user_abort(true);
 
-			//delete_transient('meet_team_user_query')
-			wp_cache_delete( 'user_query', 'meet_team_widget'  );
-			set_transient('meet_team_widget_user_query_uptodate', 0, 60*60*24*7);
+
+		set_transient('meet_team_widget_user_query_in_progress', 1, 60*60);
+
+		$response = "Cache busting started, closing connection.";
+		ignore_user_abort(true);
+		header("Connection: close");
+		header("Content-Length: " . mb_strlen($response));
+		flush($response);
+
+			delete_transient('meet_team_user_query');
+			//wp_cache_delete( 'user_query', 'meet_team_widget'  );
+			set_transient('meet_team_widget_user_query_uptodate', 0, 60);
 
 			$roles = new WP_Roles();
 			$roles = $roles->role_objects;
@@ -123,17 +130,12 @@ class Meet_Team_Widget extends WP_Widget {
 			$all_users = $wpdb->get_results($q);
 
 			if ( !empty($all_users) ){
-				wp_cache_set( 'user_query', $all_users, 'meet_team_widget', 60*60*24*7);
-				set_transient('meet_team_widget_user_query_uptodate', true, 60*60*24*7);
+				set_transient('meet_team_user_query', $all_users, 30); //60 * 60 * 24 * 7
+				set_transient('meet_team_widget_user_query_uptodate', 1, 0);
 			}
 
-			// if ( !empty($all_users) ){
-			// 	set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7);
-			// 	set_transient('meet_team_widget_user_query_uptodate', 1, 0);
-			// }
-
 		ignore_user_abort(false);
-		set_transient('meet_team_widget_user_query_in_progress', 0, 60*10);
+		set_transient('meet_team_widget_user_query_in_progress', 0, 0);
 
 		exit('Cache Updated');
 	}
@@ -431,12 +433,8 @@ class Meet_Team_Widget extends WP_Widget {
 				$categories[$category_terms[$i]->term_id] = ucfirst($category_terms[$i]->slug);
 				$category_term_ids[] = $category_terms[$i]->term_id;
 			}
-
-			//Get all users for each tax term
-			$all_users = wp_cache_get( 'user_query', 'meet_team_widget');
-
-			// NOT using transients, because transients may sometimes be stored in the database.
-			//$all_users = get_transient('meet_team_user_query');
+			//delete_transient('meet_team_user_query');
+			$all_users = get_transient('meet_team_user_query');
 			$in_progress = get_transient('meet_team_widget_user_query_in_progress');
 			$cache_uptodate = get_transient('meet_team_widget_user_query_uptodate');
 
@@ -460,21 +458,6 @@ class Meet_Team_Widget extends WP_Widget {
 						<small style="display:block;">(May take several minutes)</small> 
 					</p>';
 			}
-			
-			// NOT using transients, because transients may sometimes be stored in the database.
-			// $all_users = get_transient('meet_team_user_query');
-
-			// if(false === $all_users){
-			// 	$all_users = $wpdb->get_results($q);
-			// 	set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7);
-			// }
-
-			// $q = $this->get_user_role_tax_intersection(array('roles' => array('expert')));
-			// $all_users = $wpdb->get_results($q);//get_users_by_taxonomy('category', $category_term_ids);
-			
-			/*echo '<pre>';
-			var_dump($all_users);
-			exit;*/
 			
             // Create the exact number of drop-down menus specified in number_of_experts
             if(false !== $all_users){

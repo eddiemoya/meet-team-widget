@@ -23,7 +23,7 @@ jQuery(document).ready(function($) {
 			type : 'POST',
 			url  : ajaxurl,
 			data : data,
-			timeout: 60*1000*3, //3 minutes
+			//timeout: 60*1000*3, //3 minutes
 			beforeSend:function(){
 				$('a', container).remove();
 				$('.ajax-feedback', container).css('display', 'block');
@@ -31,6 +31,7 @@ jQuery(document).ready(function($) {
 
 			},
 			error:function(x, t, m){
+				console.log(t);
 				container.empty();
 				container.append('Woops! <br /> Timeout, something went wrong.');
 			},

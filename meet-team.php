@@ -55,7 +55,7 @@ class Meet_Team_Widget extends WP_Widget {
 		add_action('admin_print_scripts-post.php', array($this, 'enqueue'));
 		add_action('wp_ajax_meet_team_user_query_flush_cache', array($this, 'meet_team_user_query_flush_cache'));
 		add_action('set_user_role', array($this, 'meet_team_user_updated'), 10, 2);
-	//	add_action('members_pre_edit_role_form', array($this, 'roles_edited'));
+		add_action('members_pre_edit_role_form', array($this, 'roles_edited'));
 
 		parent::WP_Widget($this->id_base, $this->widget_name, $widget_ops);
 	}
@@ -115,7 +115,7 @@ class Meet_Team_Widget extends WP_Widget {
 
 			delete_transient('meet_team_user_query');
 			//wp_cache_delete( 'user_query', 'meet_team_widget'  );
-			set_transient('meet_team_widget_user_query_uptodate', 0, 60);
+			set_transient('meet_team_widget_user_query_uptodate', 0, 60 * 60 * 24 * 7);
 
 			$roles = new WP_Roles();
 			$roles = $roles->role_objects;
@@ -130,7 +130,7 @@ class Meet_Team_Widget extends WP_Widget {
 			$all_users = $wpdb->get_results($q);
 
 			if ( !empty($all_users) ){
-				set_transient('meet_team_user_query', $all_users, 30); //60 * 60 * 24 * 7
+				set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7); 
 				set_transient('meet_team_widget_user_query_uptodate', 1, 0);
 			}
 

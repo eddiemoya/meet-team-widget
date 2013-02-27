@@ -31,7 +31,7 @@ jQuery(document).ready(function($) {
 
 			},
 			error:function(x, t, m){
-				console.log(t);
+				console.log(m);
 				container.empty();
 				container.append('Woops! <br /> Timeout, something went wrong.');
 			},

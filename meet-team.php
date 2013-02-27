@@ -84,7 +84,7 @@ class Meet_Team_Widget extends WP_Widget {
 
 	public function roles_edited(){
 		if( isset($_POST['new-cap']) ||  isset($_POST['role-caps']) || isset($_POST['submit']) ) {
-			set_transient('meet_team_widget_user_query_uptodate', 0, 0);
+			delete_transient('meet_team_user_query');
 		}
 
 	}
@@ -94,7 +94,7 @@ class Meet_Team_Widget extends WP_Widget {
 		//$old_role = get_role($old_role);
 
 		if($role->name == 'expert' )	{
-			set_transient('meet_team_widget_user_query_uptodate', 0, 60*60*24*7);
+			delete_transient('meet_team_user_query');
 		}
 	}
 	/**
@@ -105,18 +105,17 @@ class Meet_Team_Widget extends WP_Widget {
 
 
 
-		set_transient('meet_team_widget_user_query_in_progress', 1, 60*60);
+		set_transient('meet_team_widget_query_in_progress', 1, 60*5);
 
 		$response = "Cache busting started, closing connection.";
 		ignore_user_abort(true);
 		header("Connection: close");
 		header("Content-Length: " . mb_strlen($response));
-		flush($response);
+		echo $response;
+		flush();
 
 			delete_transient('meet_team_user_query');
-			//wp_cache_delete( 'user_query', 'meet_team_widget'  );
-			set_transient('meet_team_widget_user_query_uptodate', 0, 60 * 60 * 24 * 7);
-
+		
 			$roles = new WP_Roles();
 			$roles = $roles->role_objects;
 
@@ -131,11 +130,10 @@ class Meet_Team_Widget extends WP_Widget {
 
 			if ( !empty($all_users) ){
 				set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7); 
-				set_transient('meet_team_widget_user_query_uptodate', 1, 0);
 			}
 
 		ignore_user_abort(false);
-		set_transient('meet_team_widget_user_query_in_progress', 0, 0);
+		delete_transient('meet_team_widget_query_in_progress');
 
 		exit('Cache Updated');
 	}
@@ -433,14 +431,12 @@ class Meet_Team_Widget extends WP_Widget {
 				$categories[$category_terms[$i]->term_id] = ucfirst($category_terms[$i]->slug);
 				$category_term_ids[] = $category_terms[$i]->term_id;
 			}
-			//delete_transient('meet_team_user_query');
+			delete_transient('meet_team_user_query');
 			$all_users = get_transient('meet_team_user_query');
-			$in_progress = get_transient('meet_team_widget_user_query_in_progress');
-			$cache_uptodate = get_transient('meet_team_widget_user_query_uptodate');
+			$in_progress = get_transient('meet_team_user_query_in_progress');
 
-			// echo "<pre>";var_dump($in_progress);echo "</pre>";
-			// echo "<pre>";var_dump($cache_uptodate);echo "</pre>";
-			// echo "<pre>";print_r($all_users);echo "</pre>";
+			echo "<pre>";var_dump($in_progress);echo "</pre>";
+			echo "<pre>";print_r($all_users);echo "</pre>";
 
 			if(!$in_progress){
 				if( false === $all_users){// || !$cache_uptodate ){

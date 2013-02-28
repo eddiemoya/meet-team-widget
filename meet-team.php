@@ -53,7 +53,7 @@ class Meet_Team_Widget extends WP_Widget {
 		
 		add_action('admin_print_scripts-widgets.php', array($this, 'enqueue'));
 		add_action('admin_print_scripts-post.php', array($this, 'enqueue'));
-		add_action('wp_ajax_meet_team_user_query_flush_cache', array($this, 'meet_team_user_query_flush_cache'));
+		add_action('wp_ajax_meet_team_query_flush_cache', array($this, 'meet_team_query_flush_cache'));
 		add_action('set_user_role', array($this, 'meet_team_user_updated'), 10, 2);
 		add_action('members_pre_edit_role_form', array($this, 'roles_edited'));
 
@@ -100,7 +100,7 @@ class Meet_Team_Widget extends WP_Widget {
 	/**
 	 * @author Eddie Moya
 	 */
-	public function meet_team_user_query_flush_cache(){
+	public function meet_team_query_flush_cache(){
 		global $wpdb;
 
 

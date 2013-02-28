@@ -13,7 +13,7 @@ jQuery(document).ready(function($) {
 
  		
 		var data = {
-			action		: 'meet_team_user_query_flush_cache',
+			action		: 'meet_team_query_flush_cache',
 			user_id		: ''
 		};
 		

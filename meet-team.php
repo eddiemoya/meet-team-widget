@@ -431,7 +431,7 @@ class Meet_Team_Widget extends WP_Widget {
 				$categories[$category_terms[$i]->term_id] = ucfirst($category_terms[$i]->slug);
 				$category_term_ids[] = $category_terms[$i]->term_id;
 			}
-			delete_transient('meet_team_user_query');
+			//delete_transient('meet_team_user_query');
 			$all_users = get_transient('meet_team_user_query');
 			$in_progress = get_transient('meet_team_user_query_in_progress');
 

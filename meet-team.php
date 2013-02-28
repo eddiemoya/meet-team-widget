@@ -113,6 +113,7 @@ class Meet_Team_Widget extends WP_Widget {
 		header("Content-Length: " . mb_strlen($response));
 		echo $response;
 		flush();
+		fastcgi_finish_request();
 
 			delete_transient('meet_team_user_query');
 		
@@ -435,8 +436,8 @@ class Meet_Team_Widget extends WP_Widget {
 			$all_users = get_transient('meet_team_user_query');
 			$in_progress = get_transient('meet_team_user_query_in_progress');
 
-			// echo "<pre>";var_dump($in_progress);echo "</pre>";
-			// echo "<pre>";var_dump($all_users);echo "</pre>";
+			echo "<pre>";var_dump($in_progress);echo "</pre>";
+			echo "<pre>";var_dump($all_users);echo "</pre>";
 
 			if(!$in_progress){
 				if(!$all_users){// || !$cache_uptodate ){

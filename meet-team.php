@@ -5,7 +5,7 @@
 /*
 Plugin Name: Meet the Community Team
 Description: Creates a widget for viewing communities experts
-Version: 1.1
+Version: 1.2
 Author: Harry Oh, Eddie Moya, Dan Crimmins
 */
 
@@ -105,7 +105,7 @@ class Meet_Team_Widget extends WP_Widget {
 
 
 
-		set_transient('meet_team_widget_query_in_progress', 1, 60*5);
+		set_transient('meet_team_user_query_in_progress', 1, 60*5);
 
 		$response = "Cache busting started, closing connection.";
 		ignore_user_abort(true);
@@ -133,7 +133,7 @@ class Meet_Team_Widget extends WP_Widget {
 			}
 
 		ignore_user_abort(false);
-		delete_transient('meet_team_widget_query_in_progress');
+		delete_transient('meet_team_user_query_in_progress');
 
 		exit('Cache Updated');
 	}
@@ -435,11 +435,11 @@ class Meet_Team_Widget extends WP_Widget {
 			$all_users = get_transient('meet_team_user_query');
 			$in_progress = get_transient('meet_team_user_query_in_progress');
 
-			echo "<pre>";var_dump($in_progress);echo "</pre>";
-			echo "<pre>";print_r($all_users);echo "</pre>";
+			// echo "<pre>";var_dump($in_progress);echo "</pre>";
+			// echo "<pre>";var_dump($all_users);echo "</pre>";
 
 			if(!$in_progress){
-				if( false === $all_users){// || !$cache_uptodate ){
+				if(!$all_users){// || !$cache_uptodate ){
 					//Show Cache Buster button
 					echo '
 					<p class="update-nag">User Cache out of date! <br />	                    

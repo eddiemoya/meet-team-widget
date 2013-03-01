@@ -53,7 +53,7 @@ class Meet_Team_Widget extends WP_Widget {
 		
 		add_action('admin_print_scripts-widgets.php', array($this, 'enqueue'));
 		add_action('admin_print_scripts-post.php', array($this, 'enqueue'));
-		add_action('wp_ajax_meet_team_user_query_flush_cache', array($this, 'meet_team_user_query_flush_cache'));
+		add_action('wp_ajax_meet_team_user_query_flush_cache', array($this, 'meet_team_flush_cache'));
 		add_action('set_user_role', array($this, 'meet_team_user_updated'), 10, 2);
 		add_action('members_pre_edit_role_form', array($this, 'roles_edited'));
 
@@ -84,7 +84,7 @@ class Meet_Team_Widget extends WP_Widget {
 
 	public function roles_edited(){
 		if( isset($_POST['new-cap']) ||  isset($_POST['role-caps']) || isset($_POST['submit']) ) {
-			delete_delete('meet_team_user_query');
+			delete_transient('meet_team_user_query');
 		}
 
 	}
@@ -100,10 +100,10 @@ class Meet_Team_Widget extends WP_Widget {
 	/**
 	 * @author Eddie Moya
 	 */
-	public function meet_team_user_query_flush_cache(){
+	public function meet_team_flush_cache(){
 		global $wpdb;
 
-		set_transient('meet_team_user_query_in_progress', 1, 30);
+		set_transient('meet_team_in_progress', 1, 60*5);
 		$response = "Cache busting started, closing connection.";
 		
 		header("Connection: close");
@@ -113,7 +113,6 @@ class Meet_Team_Widget extends WP_Widget {
 
 			delete_transient('meet_team_user_query');
 			//wp_cache_delete( 'user_query', 'meet_team_widget'  );
-			set_transient('meet_team_widget_user_query_uptodate', 0, 60 * 60 * 24 * 7);
 
 			$roles = new WP_Roles();
 			$roles = $roles->role_objects;
@@ -129,11 +128,10 @@ class Meet_Team_Widget extends WP_Widget {
 
 			if ( !empty($all_users) ){
 				set_transient('meet_team_user_query', $all_users, 60 * 60 * 24 * 7); 
-				set_transient('meet_team_widget_user_query_uptodate', 1, 0);
 			}
 
 		ignore_user_abort(false);
-		set_transient('meet_team_widget_user_query_in_progress', 0, 0);
+		set_transient('meet_team_in_progress', 0, 0);
 
 		exit('Cache Updated');
 	}
@@ -433,15 +431,14 @@ class Meet_Team_Widget extends WP_Widget {
 			}
 			//delete_transient('meet_team_user_query');
 			$all_users = get_transient('meet_team_user_query');
-			$in_progress = get_transient('meet_team_widget_user_query_in_progress');
-			$cache_uptodate = get_transient('meet_team_widget_user_query_uptodate');
+			$in_progress = get_transient('meet_team_in_progress');
 
 			// echo "<pre>";var_dump($in_progress);echo "</pre>";
 			// echo "<pre>";var_dump($cache_uptodate);echo "</pre>";
 			// echo "<pre>";print_r($all_users);echo "</pre>";
 
 			if(!$in_progress){
-				if( false === $all_users){// || !$cache_uptodate ){
+				if(!$all_users){// || !$cache_uptodate ){
 					//Show Cache Buster button
 					echo '
 					<p class="update-nag">User Cache out of date! <br />	                    

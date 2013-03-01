@@ -103,16 +103,14 @@ class Meet_Team_Widget extends WP_Widget {
 	public function meet_team_query_flush_cache(){
 		global $wpdb;
 
-
-
 		set_transient('meet_team_user_query_in_progress', 1, 60*5);
-
 		$response = "Cache busting started, closing connection.";
+
 		ignore_user_abort(true);
+		set_time_limit(0);
 		header("Connection: close");
 		header("Content-Length: " . mb_strlen($response));
-		echo $response;
-		flush();
+		flush($response);
 		fastcgi_finish_request();
 
 			delete_transient('meet_team_user_query');

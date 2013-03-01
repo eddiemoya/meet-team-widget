@@ -84,7 +84,7 @@ class Meet_Team_Widget extends WP_Widget {
 
 	public function roles_edited(){
 		if( isset($_POST['new-cap']) ||  isset($_POST['role-caps']) || isset($_POST['submit']) ) {
-			set_transient('meet_team_widget_user_query_uptodate', 0, 0);
+			delete_delete('meet_team_user_query');
 		}
 
 	}
@@ -94,7 +94,7 @@ class Meet_Team_Widget extends WP_Widget {
 		//$old_role = get_role($old_role);
 
 		if($role->name == 'expert' )	{
-			set_transient('meet_team_widget_user_query_uptodate', 0, 60*60*24*7);
+			delete_transient('meet_team_user_query');
 		}
 	}
 	/**
